@@ -1,3 +1,4 @@
+import atexit
 import os
 from limix_util.pickle_ import SlotPickleMixin
 import limix_util.pickle_ as pickle_
@@ -233,3 +234,18 @@ class ClusterRun(ClusterRunBase):
 def _generate_runid():
     from time import gmtime, strftime
     return strftime('%Y-%m-%d-%H-%M-%S', gmtime())
+
+_registered_cluster_runs = dict()
+def _register_cluster_run(cr):
+    if id(cr) not in _registered_cluster_runs:
+        _registered_cluster_runs[id(cr)] = cr
+
+def _update_storage():
+    for cr in _registered_cluster_runs.values():
+        cr.store()
+atexit.register(_update_storage)
+
+def get_bjob(runid, jobid):
+    cr = load(runid)
+    _register_cluster_run(cr)
+    return cr.jobs[jobid]

@@ -5,7 +5,7 @@ from tabulate import tabulate
 import clusterrun
 
 def do_root(_):
-    print(config.root_dir())
+    print(config.cluster_oe_folder())
 
 def _do_run_status(runid):
     cc = clusterrun.load(runid)
