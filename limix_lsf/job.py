@@ -1,4 +1,9 @@
 from limix_util.pickle_ import SlotPickleMixin
+from util import get_jobs_stat
+from util import get_output_files
+import cStringIO as StringIO
+import humanfriendly as hf
+import re
 
 class Job(SlotPickleMixin):
     __slots__ = ['jobid', 'finished', '_exit_status', 'cmd', '_bcmd',
@@ -18,7 +23,7 @@ class Job(SlotPickleMixin):
         self._stat_cache = None
 
     def stdout(self):
-        (fp, _) = _get_output_files(self.jobid, self.runid)
+        (fp, _) = get_output_files(self.jobid, self.runid)
         try:
             with open(fp, 'r') as f:
                 return f.read()
@@ -27,7 +32,7 @@ class Job(SlotPickleMixin):
         return None
 
     def stderr(self):
-        (_, fp) = _get_output_files(self.jobid, self.runid)
+        (_, fp) = get_output_files(self.jobid, self.runid)
         try:
             with open(fp, 'r') as f:
                 return f.read()
@@ -72,7 +77,7 @@ class Job(SlotPickleMixin):
         if self._stat_cache:
             return self._stat_cache
 
-        stats = _get_jobs_stat()
+        stats = get_jobs_stat()
 
         if self.os_jobid not in stats:
             if self.hassubmitted():

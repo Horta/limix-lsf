@@ -1,9 +1,31 @@
 from subprocess import Popen
 import os
 import subprocess
-import clusterrun
 import re
 import config
+from limix_util.path_ import make_sure_path_exists
+
+_max_nfiles = 1000
+
+def get_output_files(i, runid):
+    pr = str(int(i / _max_nfiles))
+    base = os.path.join(config.cluster_oe_folder(), runid, pr)
+    make_sure_path_exists(base)
+    ofile = os.path.join(base, 'out_%d.txt' % i)
+    efile = os.path.join(base, 'err_%d.txt' % i)
+    return (ofile, efile)
+
+_stats = [None]
+def get_jobs_stat():
+    if _stats[0] is None:
+        cmd = 'bjobs -a -o "JOBID STAT" -noheader'
+        r = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        r = r.strip()
+        if r == 'No job found':
+            _stats[0] = {}
+        else:
+            _stats[0] = {int(row.split(' ')[0]):row.split(' ')[1] for row in r.split('\n')}
+    return _stats[0]
 
 def group_jobids(grp):
     procs = Popen("bjobs -g %s -w | awk '{print $1}'" % grp,
@@ -22,34 +44,6 @@ def kill_group(grp, block=True):
     if block:
         for p in procs:
             p.wait()
-
-def get_groups_summary():
-    nlast = 10
-
-    awk = "awk -F\" \" '{print $1, $2, $3, $4, $5, $6, $7}'"
-    cmd = "bjgroup | grep -E \".*`whoami`$\" | %s" % awk
-    msg = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-    msg = msg.strip()
-    lines = msg.split('\n')
-    table = [line.split(' ') for line in lines]
-
-    table = _clear_groups_summary(table)
-    table.sort(key=lambda x: x[0])
-    if len(table) > nlast:
-        table = table[-nlast:]
-
-    cruns = []
-    for row in table:
-        runid = row[0].strip('/').split('/')[1]
-        cr = clusterrun.load(runid)
-        cruns.append(cr)
-        row.append(cr.number_jobs_failed)
-        row.append(cr.number_jobs_succeed)
-
-    header = ['group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
-              'failed', 'succeed']
-    table.insert(0, header)
-    return table
 
 def _try_clean_runid(runid):
     c = re.compile(r'^.*(\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d).*$')
@@ -72,23 +66,3 @@ def get_runids():
     files = os.listdir(config.cluster_oe_folder())
     runids = [f for f in files if c.match(f)]
     return runids
-
-def _clear_groups_summary(table):
-    ntable = []
-    for row in table:
-        if not _isrun_group(row[0]):
-            continue
-        row[1:] = [int(c) for c in row[1:]]
-        ntable.append(row)
-    return ntable
-
-def _isrun_group(name):
-    name = name.strip('/')
-    names = name.split('/')
-    if len(names) != 2:
-        return False
-    return names[0] == 'cluster' and _isrunid(names[1])
-
-_runid_matcher = re.compile(r'^\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d$')
-def _isrunid(runid):
-    return _runid_matcher.match(runid) is not None

@@ -13,6 +13,7 @@ from os.path import join
 import humanfriendly as hf
 from job import Job
 from copy import copy
+import re
 
 _cluster_runs = dict()
 def load(runid):
@@ -249,3 +250,51 @@ def get_bjob(runid, jobid):
     cr = load(runid)
     _register_cluster_run(cr)
     return cr.jobs[jobid]
+
+def get_groups_summary():
+    nlast = 10
+
+    awk = "awk -F\" \" '{print $1, $2, $3, $4, $5, $6, $7}'"
+    cmd = "bjgroup | grep -E \".*`whoami`$\" | %s" % awk
+    msg = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    msg = msg.strip()
+    lines = msg.split('\n')
+    table = [line.split(' ') for line in lines]
+
+    table = _clear_groups_summary(table)
+    table.sort(key=lambda x: x[0])
+    if len(table) > nlast:
+        table = table[-nlast:]
+
+    cruns = []
+    for row in table:
+        runid = row[0].strip('/').split('/')[1]
+        cr = load(runid)
+        cruns.append(cr)
+        row.append(cr.number_jobs_failed)
+        row.append(cr.number_jobs_succeed)
+
+    header = ['group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
+              'failed', 'succeed']
+    table.insert(0, header)
+    return table
+
+def _clear_groups_summary(table):
+    ntable = []
+    for row in table:
+        if not _isrun_group(row[0]):
+            continue
+        row[1:] = [int(c) for c in row[1:]]
+        ntable.append(row)
+    return ntable
+
+def _isrun_group(name):
+    name = name.strip('/')
+    names = name.split('/')
+    if len(names) != 2:
+        return False
+    return names[0] == 'cluster' and _isrunid(names[1])
+
+_runid_matcher = re.compile(r'^\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d$')
+def _isrunid(runid):
+    return _runid_matcher.match(runid) is not None
