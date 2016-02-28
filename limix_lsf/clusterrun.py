@@ -1,19 +1,17 @@
-import atexit
 import os
-from limix_util.pickle_ import SlotPickleMixin
-import limix_util.pickle_ as pickle_
-from limix_util import BeginEnd
-from limix_util import ProgressBar
-from limix_util.path_ import make_sure_path_exists
+from os.path import join
+import re
+import atexit
 import subprocess
 from subprocess import list2cmdline
+from limix_util.report import BeginEnd, ProgressBar
+import limix_util.pickle_ as pickle_
+from limix_util.path_ import make_sure_path_exists
 from config import cluster_oe_folder
 import util
-from os.path import join
 import humanfriendly as hf
 from job import Job
 from copy import copy
-import re
 
 _cluster_runs = dict()
 def load(runid):
@@ -24,7 +22,7 @@ def load(runid):
             _cluster_runs[runid] = cr
     return _cluster_runs[runid]
 
-class ClusterRunBase(SlotPickleMixin):
+class ClusterRunBase(pickle_.SlotPickleMixin):
     __slots__ = ['requests', 'megabytes', 'jobs', 'group', 'runid', 'title',
                  'nprocs', 'mkl_nthreads']
     def __init__(self, title):

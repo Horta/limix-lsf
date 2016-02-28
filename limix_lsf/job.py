@@ -1,9 +1,9 @@
-from limix_util.pickle_ import SlotPickleMixin
-from util import get_jobs_stat
-from util import get_output_files
-import cStringIO as StringIO
-import humanfriendly as hf
 import re
+from cStringIO import StringIO
+import humanfriendly as hf
+from limix_util.pickle_ import SlotPickleMixin
+import util
+
 
 class Job(SlotPickleMixin):
     __slots__ = ['jobid', 'finished', '_exit_status', 'cmd', '_bcmd',
@@ -23,7 +23,7 @@ class Job(SlotPickleMixin):
         self._stat_cache = None
 
     def stdout(self):
-        (fp, _) = get_output_files(self.jobid, self.runid)
+        (fp, _) = util.get_output_files(self.jobid, self.runid)
         try:
             with open(fp, 'r') as f:
                 return f.read()
@@ -32,7 +32,7 @@ class Job(SlotPickleMixin):
         return None
 
     def stderr(self):
-        (_, fp) = get_output_files(self.jobid, self.runid)
+        (_, fp) = util.get_output_files(self.jobid, self.runid)
         try:
             with open(fp, 'r') as f:
                 return f.read()
@@ -77,7 +77,7 @@ class Job(SlotPickleMixin):
         if self._stat_cache:
             return self._stat_cache
 
-        stats = get_jobs_stat()
+        stats = util.get_jobs_stat()
 
         if self.os_jobid not in stats:
             if self.hassubmitted():
@@ -118,7 +118,7 @@ class Job(SlotPickleMixin):
         if data is None:
             return None
 
-        buf = StringIO.StringIO(data)
+        buf = StringIO(data)
         found = False
         for line in buf:
             if line.strip() == 'Your job looked like:':
@@ -154,7 +154,7 @@ class Job(SlotPickleMixin):
         if data is None:
             return None
 
-        buf = StringIO.StringIO(data)
+        buf = StringIO(data)
         found = False
         for line in buf:
             if line.strip() == 'Resource usage summary:':

@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
-import config
-import util
 from tabulate import tabulate
+import config
 import clusterrun
+import util
 
 def do_root(_):
     print(config.cluster_oe_folder())
@@ -21,7 +21,7 @@ def _do_run_status(runid):
     # cc.get_number_jobs_failed()
 
 def _do_global_status():
-    table = util.get_groups_summary()
+    table = clusterrun.get_groups_summary()
     print tabulate(table)
 
 def do_status(args):
