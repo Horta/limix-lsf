@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import re
 from cStringIO import StringIO
 import humanfriendly as hf
-from limix_util.pickle_ import SlotPickleMixin
-import util
+from limix_misc.pickle_ import SlotPickleMixin
+from . import util
 
 
 class Job(SlotPickleMixin):

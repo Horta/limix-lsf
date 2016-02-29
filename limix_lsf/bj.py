@@ -1,11 +1,12 @@
+from __future__ import absolute_import
 from argparse import ArgumentParser
 from tabulate import tabulate
-import config
 import clusterrun
-import util
+from . import util
 
 def do_root(_):
-    print(config.cluster_oe_folder())
+    from .config import cluster_oe_folder
+    print(cluster_oe_folder())
 
 def _do_run_status(runid):
     cc = clusterrun.load(runid)

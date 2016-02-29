@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 from subprocess import Popen
 import os
 import subprocess
 import re
 import config
-from limix_util.path_ import make_sure_path_exists
+from limix_misc.path_ import make_sure_path_exists
 
 _max_nfiles = 1000
 

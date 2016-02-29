@@ -1,17 +1,19 @@
+from __future__ import absolute_import
 import os
 from os.path import join
+from copy import copy
 import re
 import atexit
 import subprocess
 from subprocess import list2cmdline
-from limix_util.report import BeginEnd, ProgressBar
-import limix_util.pickle_ as pickle_
-from limix_util.path_ import make_sure_path_exists
-from config import cluster_oe_folder
-import util
 import humanfriendly as hf
-from job import Job
-from copy import copy
+from limix_misc.report import BeginEnd, ProgressBar
+import limix_misc.pickle_ as pickle_
+from limix_misc.path_ import make_sure_path_exists
+from .config import cluster_oe_folder
+from . import util
+from .job import Job
+
 
 _cluster_runs = dict()
 def load(runid):

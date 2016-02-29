@@ -1,35 +1,38 @@
 from __future__ import division, print_function
-try:
-    import limix_build
-except ImportError:
-    from ez_build import use_limix_build
-    use_limix_build()
-    import limix_build
-
 import os
 import sys
 from setuptools import setup, find_packages
 
-if sys.version_info[0] >= 3:
-    import builtins
+PKG_NAME = 'limix_lsf'
+VERSION  = '0.1.0'
+
+try:
+    from distutils.command.bdist_conda import CondaDistribution
+except ImportError:
+    conda_present = False
 else:
-    import __builtin__ as builtins
-
-builtins.__LIMIX_LSF_SETUP__ = True
-
-PKG_NAME            = "limix_lsf"
-MAJOR               = 0
-MINOR               = 0
-MICRO               = 1
-ISRELEASED          = False
-VERSION             = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
-from limix_build import write_version_py
-from limix_build import get_version_info
+    conda_present = True
 
 def get_test_suite():
     from unittest import TestLoader
-    return TestLoader().discover('limix_lsf')
+    return TestLoader().discover(PKG_NAME)
+
+def write_version():
+    cnt = """
+# THIS FILE IS GENERATED FROM %(package_name)s SETUP.PY
+version = '%(version)s'
+"""
+    filename = os.path.join(PKG_NAME, 'version.py')
+    a = open(filename, 'w')
+    try:
+        a.write(cnt % {'version': VERSION,
+                       'package_name': PKG_NAME.upper()})
+    finally:
+        a.close()
+
+def get_version_filename(package_name):
+    filename = os.path.join(package_name, 'version.py')
+    return filename
 
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -37,15 +40,15 @@ def setup_package():
     os.chdir(src_path)
     sys.path.insert(0, src_path)
 
-    write_version_py(PKG_NAME, VERSION, ISRELEASED)
+    write_version()
 
-    install_requires = ['hcache', 'limix_util', 'humanfriendly', 'tabulate']
+    install_requires = ['tabulate', 'limix_misc', 'humanfriendly']
     setup_requires = []
 
     metadata = dict(
         name=PKG_NAME,
         maintainer="Limix Developers",
-        version=get_version_info(PKG_NAME, VERSION, ISRELEASED)[0],
+        version=VERSION,
         maintainer_email="horta@ebi.ac.uk",
         test_suite='setup.get_test_suite',
         packages=find_packages(),
@@ -53,11 +56,15 @@ def setup_package():
         url='http://pmbio.github.io/limix/',
         install_requires=install_requires,
         setup_requires=setup_requires,
+        zip_safe=True,
         entry_points={
             'console_scripts': ['bj = limix_lsf.bj:entry_point']
-        },
-        zip_safe=False
+        }
     )
+
+    if conda_present:
+        metadata['distclass'] = CondaDistribution
+        metadata['conda_buildnum'] = 1
 
     try:
         setup(**metadata)
