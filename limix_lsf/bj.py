@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from argparse import ArgumentParser
 from tabulate import tabulate
-import clusterrun
+from . import clusterrun
 from . import util
 
 def do_root(_):

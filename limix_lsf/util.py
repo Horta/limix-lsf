@@ -3,7 +3,7 @@ from subprocess import Popen
 import os
 import subprocess
 import re
-import config
+from . import config
 from limix_misc.path_ import make_sure_path_exists
 
 _max_nfiles = 1000
