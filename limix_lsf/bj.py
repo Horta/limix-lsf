@@ -63,6 +63,8 @@ def do_status(args):
 #         _do_remove_run(old_runids)
 
 def entry_point():
+    import logging
+    logging.basicConfig()
     p = ArgumentParser()
     sub = p.add_subparsers()
 

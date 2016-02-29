@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import logging
 import os
 from os.path import join
 from copy import copy
@@ -18,10 +19,9 @@ from .job import Job
 _cluster_runs = dict()
 def load(runid):
     if runid not in _cluster_runs:
-        with BeginEnd('Loading cluster commands', silent=True):
-            cr = pickle_.unpickle(join(cluster_oe_folder(), runid,
-                                  'cluster_run.pkl'))
-            _cluster_runs[runid] = cr
+        cr = pickle_.unpickle(join(cluster_oe_folder(), runid,
+                              'cluster_run.pkl'))
+        _cluster_runs[runid] = cr
     return _cluster_runs[runid]
 
 class ClusterRunBase(pickle_.SlotPickleMixin):
@@ -266,13 +266,19 @@ def get_groups_summary():
     if len(table) > nlast:
         table = table[-nlast:]
 
-    cruns = []
+    logger = logging.getLogger(__file__)
     for row in table:
         runid = row[0].strip('/').split('/')[1]
-        cr = load(runid)
-        cruns.append(cr)
-        row.append(cr.number_jobs_failed)
-        row.append(cr.number_jobs_succeed)
+        try:
+            cr = load(runid)
+        except ImportError as e:
+            logger.warn('Could not load cluster run %s. Reason: %s.', runid,
+                        str(e))
+            row.append('UNK')
+            row.append('UNK')
+        else:
+            row.append(cr.number_jobs_failed)
+            row.append(cr.number_jobs_succeed)
 
     header = ['group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
               'failed', 'succeed']
