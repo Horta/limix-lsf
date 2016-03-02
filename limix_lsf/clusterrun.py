@@ -26,7 +26,7 @@ def load(runid):
 
 class ClusterRunBase(pickle_.SlotPickleMixin):
     __slots__ = ['requests', 'megabytes', 'jobs', 'group', 'runid', 'title',
-                 'nprocs', 'mkl_nthreads']
+                 'nprocs', 'mkl_nthreads', 'queue']
     def __init__(self, title):
         self.requests = []
         self.megabytes = 4096
@@ -35,6 +35,7 @@ class ClusterRunBase(pickle_.SlotPickleMixin):
         self.runid = None
         self.title = title
         self.mkl_nthreads = 1
+        self.queue = None
 
 class ClusterRun(ClusterRunBase):
     __slots__ = []
@@ -101,11 +102,6 @@ class ClusterRun(ClusterRunBase):
 
     def resubmit(self, jobid):
         raise NotImplementedError('me implementa ai porra')
-        # job = get_bjob(self.runid, jobid)
-        # proc = self._parallel_run_job(job)
-        # (job.odata, job.edata) = proc.communicate()
-        # proc.stdout.close()
-        # proc.stderr.close()
 
     def run(self, dryrun=False):
         if self.runid is not None:
@@ -119,6 +115,8 @@ class ClusterRun(ClusterRunBase):
         self._parse_memory(bcmd)
         self._parse_nprocs(bcmd)
         bcmd += ['-g', '/cluster/%s' % self.runid]
+        if self.queue:
+            bcmd += ['-q', self.queue]
         self._end_parse(bcmd)
 
         procs = []
