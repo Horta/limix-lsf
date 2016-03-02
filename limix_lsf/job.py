@@ -70,7 +70,6 @@ class Job(SlotPickleMixin):
     def full_cmd(self):
         n = self.mkl_nthreads
         middle  = ['env', 'MKL_NUM_THREADS=%d' % n]
-        middle += ["MKL_DOMAIN_NUM_THREADS='MKL_ALL=%d, MKL_BLAS=%d'" % (n,n)]
         middle += ['MKL_DYNAMIC=TRUE']
         return self.bcmd + middle + self.cmd
 
