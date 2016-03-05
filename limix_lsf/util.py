@@ -4,7 +4,7 @@ import os
 import subprocess
 import re
 from . import config
-from limix_misc.path_ import make_sure_path_exists
+from limix_util.path_ import make_sure_path_exists
 
 _max_nfiles = 1000
 

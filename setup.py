@@ -4,7 +4,7 @@ import sys
 from setuptools import setup, find_packages
 
 PKG_NAME = 'limix_lsf'
-VERSION  = '0.1.0'
+VERSION  = '0.1.1'
 
 try:
     from distutils.command.bdist_conda import CondaDistribution
@@ -42,7 +42,7 @@ def setup_package():
 
     write_version()
 
-    install_requires = ['tabulate', 'limix_misc', 'humanfriendly']
+    install_requires = ['tabulate', 'limix_util', 'humanfriendly']
     setup_requires = []
 
     metadata = dict(
