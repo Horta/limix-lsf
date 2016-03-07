@@ -277,9 +277,10 @@ def get_groups_summary():
         else:
             row.append(cr.number_jobs_failed)
             row.append(cr.number_jobs_succeed)
+            row.append(cr.title)
 
     header = ['group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
-              'failed', 'succeed']
+              'failed', 'succeed', 'title']
     table.insert(0, header)
     return table
 
