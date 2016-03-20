@@ -1,12 +1,13 @@
 from __future__ import absolute_import
 from argparse import ArgumentParser
 from tabulate import tabulate
+import logging
 from . import clusterrun
 from . import util
+from . import config
 
 def do_root(_):
-    from .config import cluster_oe_folder
-    print(cluster_oe_folder())
+    print(config.stdoe_folder())
 
 def _do_run_status(runid):
     cc = clusterrun.load(runid)
@@ -63,7 +64,6 @@ def do_status(args):
 #         _do_remove_run(old_runids)
 
 def entry_point():
-    import logging
     logging.basicConfig()
     p = ArgumentParser()
     sub = p.add_subparsers()

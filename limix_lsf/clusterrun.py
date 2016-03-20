@@ -11,15 +11,14 @@ import humanfriendly as hf
 from limix_util.report import BeginEnd, ProgressBar
 import limix_util.pickle_ as pickle_
 from limix_util.path_ import make_sure_path_exists
-from .config import cluster_oe_folder
+from . import config
 from . import util
-from .job import Job
-
+from . import job
 
 _cluster_runs = dict()
 def load(runid):
     if runid not in _cluster_runs:
-        cr = pickle_.unpickle(join(cluster_oe_folder(), runid,
+        cr = pickle_.unpickle(join(config.stdoe_folder(), runid,
                               'cluster_run.pkl'))
         _cluster_runs[runid] = cr
     return _cluster_runs[runid]
@@ -44,7 +43,7 @@ class ClusterRun(ClusterRunBase):
 
     def store(self):
         with BeginEnd('Storing cluster commands', silent=True):
-            pickle_.pickle(self, join(cluster_oe_folder(), self.runid,
+            pickle_.pickle(self, join(config.stdoe_folder(), self.runid,
                            'cluster_run.pkl'))
 
     def request(self, req):
@@ -84,8 +83,8 @@ class ClusterRun(ClusterRunBase):
         cmd = cmd if isinstance(cmd, list) else [cmd]
         cmd = [str(c) for c in cmd]
 
-        job = Job(len(self.jobs), cmd)
-        self.jobs.append(job)
+        j = job.Job(len(self.jobs), cmd)
+        self.jobs.append(j)
 
     def _dryrun_job(self, job):
         print(list2cmdline(job.full_cmd))
@@ -109,7 +108,7 @@ class ClusterRun(ClusterRunBase):
 
         self.runid = _generate_runid()
         if not dryrun:
-            make_sure_path_exists(join(cluster_oe_folder(), self.runid))
+            make_sure_path_exists(join(config.stdoe_folder(), self.runid))
         bcmd = self._init_parse()
         self._parse_requests(bcmd)
         self._parse_memory(bcmd)
@@ -175,7 +174,7 @@ class ClusterRun(ClusterRunBase):
     def _get_output_files(self, jobid):
         _max_nfiles = 1000
         pr = str(int(jobid / _max_nfiles))
-        base = join(cluster_oe_folder(), self.runid, pr)
+        base = join(config.stdoe_folder(), self.runid, pr)
         make_sure_path_exists(base)
         ofile = join(base, 'out_%d.txt' % jobid)
         efile = join(base, 'err_%d.txt' % jobid)

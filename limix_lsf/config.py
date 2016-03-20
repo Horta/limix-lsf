@@ -1,6 +1,8 @@
-import json
 import os
+import ConfigParser
 
-def cluster_oe_folder():
-    return json.load(open(os.path.join(os.path.expanduser('~'),
-                         'cluster_properties.json'), 'r'))['cluster_oe']
+def stdoe_folder():
+    home = os.path.join(os.path.expanduser('~'))
+    conf = ConfigParser.ConfigParser()
+    conf.read(os.path.join(home, '.config', 'lsf', 'config'))
+    return conf.get('DEFAULT', 'stdoe_folder')
