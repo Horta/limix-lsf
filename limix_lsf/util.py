@@ -3,14 +3,14 @@ from subprocess import Popen
 import os
 import subprocess
 import re
-from . import config
+from .config import stdoe_folder
 from limix_util.path_ import make_sure_path_exists
 
 _max_nfiles = 1000
 
 def get_output_files(i, runid):
     pr = str(int(i / _max_nfiles))
-    base = os.path.join(config.cluster_oe_folder(), runid, pr)
+    base = os.path.join(stdoe_folder(), runid, pr)
     make_sure_path_exists(base)
     ofile = os.path.join(base, 'out_%d.txt' % i)
     efile = os.path.join(base, 'err_%d.txt' % i)
@@ -64,6 +64,6 @@ def proper_runid(what):
 
 def get_runids():
     c = re.compile(r'^\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d$')
-    files = os.listdir(config.cluster_oe_folder())
+    files = os.listdir(config.stdoe_folder())
     runids = [f for f in files if c.match(f)]
     return runids
