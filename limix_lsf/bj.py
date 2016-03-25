@@ -15,16 +15,16 @@ def _do_run_status(runid):
         print('Runid %s could not be found.' % runid)
         return
 
-    print cc.number_jobs
-    print cc.number_jobs_pending
-    print cc.number_jobs_running
-    print cc.number_jobs_finished
-    print 'exit status', cc.jobs[0].exit_status()
+    print(cc.number_jobs)
+    print(cc.number_jobs_pending)
+    print(cc.number_jobs_running)
+    print(cc.number_jobs_finished)
+    print('exit status', cc.jobs[0].exit_status())
     # cc.get_number_jobs_failed()
 
 def _do_global_status():
     table = clusterrun.get_groups_summary()
-    print tabulate(table)
+    print(tabulate(table))
 
 def do_status(args):
     if args.runid:

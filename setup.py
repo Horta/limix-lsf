@@ -4,7 +4,7 @@ import sys
 from setuptools import setup, find_packages
 
 PKG_NAME = 'limix_lsf'
-VERSION  = '0.1.1'
+VERSION  = '0.1.2'
 
 try:
     from distutils.command.bdist_conda import CondaDistribution

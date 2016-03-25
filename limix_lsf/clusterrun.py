@@ -134,7 +134,7 @@ class ClusterRun(ClusterRunBase):
                         procs[j].stdout.close()
                         procs[j].stderr.close()
                         if 'Error' in self.jobs[j].odata:
-                            print self.jobs[j].odata
+                            print(self.jobs[j].odata)
 
 
                 job.runid = self.runid
