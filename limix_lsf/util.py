@@ -8,6 +8,12 @@ from limix_util.path_ import make_sure_path_exists
 
 _max_nfiles = 1000
 
+def killall(force=False):
+    if force:
+        subprocess.call("bkill -r -u horta 0", shell=True)
+    else:
+        subprocess.call("bkill -u horta 0", shell=True)
+
 def get_output_files(i, runid):
     pr = str(int(i / _max_nfiles))
     base = os.path.join(stdoe_folder(), runid, pr)

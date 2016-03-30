@@ -33,6 +33,9 @@ def do_status(args):
     else:
         _do_global_status()
 
+def do_killall(_):
+    util.killall(force=True)
+
 # def do_remove_group(args):
 #
 #     # grps = cluster.get_group_names()
@@ -78,6 +81,10 @@ def entry_point():
     s = sub.add_parser('status')
     s.add_argument('runid', nargs='?', default=None)
     s.set_defaults(func=do_status)
+
+    s = sub.add_parser('killall')
+    s.set_defaults(func=do_killall)
+
     #
     # s = sub.add_parser('rm-run')
     # s.add_argument('--older_than', default=None)
