@@ -18,7 +18,6 @@ from . import job
 
 _cluster_runs = dict()
 def load(runid):
-    import ipdb; ipdb.set_trace()
     if runid not in _cluster_runs:
         cr = pickle_.unpickle(join(config.stdoe_folder(), runid,
                               'cluster_run.pkl'))
@@ -136,17 +135,20 @@ class ClusterRun(ClusterRunBase):
             bcmd += ['-q', self.queue]
         self._end_parse(bcmd)
 
-        max_workers = 50
+        ujobs = []
+        max_workers = 500
         with BeginEnd('Submitting jobs'):
             pb = ProgressBar(len(self.jobs))
             i = 0
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
                 for job in executor.map(_submit_job, self.jobs):
                     job.runid = self.runid
+                    ujobs.append(job)
                     i += 1
                     pb.update(i)
+            pb.finish()
 
-        pb.finish()
+        self.jobs = ujobs
         print('   %d jobs have been submitted   '
               % len(self.jobs))
 
@@ -267,17 +269,28 @@ def get_groups_summary():
                         str(e))
             row.append('UNK')
             row.append('UNK')
-            row.append(cr.title)
+            row.append('UNK')
         except IOError as e:
             logger.warn('Could not load cluster run %s. Reason: %s.', runid,
                         str(e))
             row.append('UNK')
             row.append('UNK')
-            row.append(cr.title)
+            row.append('UNK')
         else:
-            row.append(cr.number_jobs_failed)
-            row.append(cr.number_jobs_succeed)
-            row.append(cr.title)
+            try:
+                row.append(cr.number_jobs_failed)
+            except TypeError:
+                row.append('UNK')
+
+            try:
+                row.append(cr.number_jobs_succeed)
+            except TypeError:
+                row.append('UNK')
+
+            try:
+                row.append(cr.title)
+            except TypeError:
+                row.append('UNK')
 
     header = ['group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
               'failed', 'succeed', 'title']
