@@ -42,7 +42,7 @@ def setup_package():
 
     write_version()
 
-    install_requires = ['tabulate', 'limix_util', 'humanfriendly']
+    install_requires = ['tabulate', 'limix_util', 'humanfriendly', 'futures']
     setup_requires = []
 
     metadata = dict(

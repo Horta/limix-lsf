@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from concurrent.futures import ProcessPoolExecutor
 import logging
 import os
 from os.path import join
@@ -17,11 +18,21 @@ from . import job
 
 _cluster_runs = dict()
 def load(runid):
+    import ipdb; ipdb.set_trace()
     if runid not in _cluster_runs:
         cr = pickle_.unpickle(join(config.stdoe_folder(), runid,
                               'cluster_run.pkl'))
         _cluster_runs[runid] = cr
     return _cluster_runs[runid]
+
+def _submit_job(job):
+    fcmd = job.full_cmd
+    p = subprocess.Popen(list2cmdline(fcmd), shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (job.odata, job.edata) = p.communicate()
+    p.stdout.close()
+    p.stderr.close()
+    return job
 
 class ClusterRunBase(pickle_.SlotPickleMixin):
     __slots__ = ['requests', 'megabytes', 'jobs', 'group', 'runid', 'title',
@@ -89,12 +100,19 @@ class ClusterRun(ClusterRunBase):
     def _dryrun_job(self, job):
         print(list2cmdline(job.full_cmd))
 
-    def _parallel_run_job(self, job):
-        fcmd = job.full_cmd
-        process = subprocess.Popen(list2cmdline(fcmd), shell=True,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-        return process
+    # def _parallel_run_job(self, executor, job):
+    #     fcmd = job.full_cmd
+    #     f = executor.submit(subprocess.Popen, list2cmdline(fcmd), shell=True,
+    #                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #     # process = subprocess.Popen(list2cmdline(fcmd), shell=True,
+    #     #                  stdout=subprocess.PIPE,
+    #     #                  stderr=subprocess.PIPE)
+    #     return f
+
+    # def _run_job_wait(self, executor, job):
+    #     fcmd = job.full_cmd
+    #     f = executor.submit(subprocess.Popen, list2cmdline(fcmd), shell=True,
+    #                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def _sequential_run_job(self, job):
         os.system(list2cmdline(job.cmd))
@@ -118,47 +136,23 @@ class ClusterRun(ClusterRunBase):
             bcmd += ['-q', self.queue]
         self._end_parse(bcmd)
 
-        procs = []
-        nblocks = 1000
-
-        r = 0
+        max_workers = 50
         with BeginEnd('Submitting jobs'):
-            if not dryrun:
-                pb = ProgressBar(len(self.jobs))
-            for (i, job) in enumerate(self.jobs):
-                if i % nblocks == 0 and not dryrun:
-                    r = i
-                    for j in xrange(max(0, i - nblocks), r):
-                        (self.jobs[j].odata, self.jobs[j].edata) =\
-                                procs[j].communicate()
-                        procs[j].stdout.close()
-                        procs[j].stderr.close()
-                        if 'Error' in self.jobs[j].odata:
-                            print(self.jobs[j].odata)
+            pb = ProgressBar(len(self.jobs))
+            i = 0
+            with ProcessPoolExecutor(max_workers=max_workers) as executor:
+                for job in executor.map(_submit_job, self.jobs):
+                    job.runid = self.runid
+                    i += 1
+                    pb.update(i)
 
-
-                job.runid = self.runid
-                if dryrun:
-                    self._dryrun_job(job)
-                else:
-                    proc = self._parallel_run_job(job)
-                    procs.append(proc)
-                    pb.update(i+1)
-
-            if not dryrun:
-                for j in xrange(r, len(self.jobs)):
-                    (self.jobs[j].odata, self.jobs[j].edata) = procs[j].communicate()
-                    procs[j].stdout.close()
-                    procs[j].stderr.close()
-                pb.finish()
-                print('   %d jobs have been submitted   '
-                      % len(self.jobs))
-
+        pb.finish()
+        print('   %d jobs have been submitted   '
+              % len(self.jobs))
 
         print("Run ID: %s" % self.runid)
 
-        if not dryrun:
-            self.store()
+        self.store()
 
         return self.runid
 
@@ -273,6 +267,13 @@ def get_groups_summary():
                         str(e))
             row.append('UNK')
             row.append('UNK')
+            row.append(cr.title)
+        except IOError as e:
+            logger.warn('Could not load cluster run %s. Reason: %s.', runid,
+                        str(e))
+            row.append('UNK')
+            row.append('UNK')
+            row.append(cr.title)
         else:
             row.append(cr.number_jobs_failed)
             row.append(cr.number_jobs_succeed)
