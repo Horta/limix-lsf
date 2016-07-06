@@ -22,8 +22,8 @@ def _do_run_status(runid):
     print('exit status', cc.jobs[0].exit_status())
     # cc.get_number_jobs_failed()
 
-def _do_global_status():
-    table = clusterrun.get_groups_summary()
+def _do_global_status(nlast):
+    table = clusterrun.get_groups_summary(nlast)
     print(tabulate(table))
 
 def do_status(args):
@@ -31,7 +31,7 @@ def do_status(args):
         runid = util.proper_runid(args.runid)
         _do_run_status(runid)
     else:
-        _do_global_status()
+        _do_global_status(args.nlast)
 
 def do_killall(_):
     util.killall(force=True)
@@ -77,9 +77,10 @@ def entry_point():
     # s = sub.add_parser('hist')
     # s.add_argument('--last_n', type=int, default=5)
     # s.set_defaults(func=do_hist)
-    #
+
     s = sub.add_parser('status')
     s.add_argument('runid', nargs='?', default=None)
+    s.add_argument('--nlast', default=10, type=int)
     s.set_defaults(func=do_status)
 
     s = sub.add_parser('killall')

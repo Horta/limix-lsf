@@ -10,8 +10,9 @@ import subprocess
 from subprocess import list2cmdline
 import humanfriendly as hf
 from limix_util.report import BeginEnd, ProgressBar
-import limix_util.pickle_ as pickle_
-from limix_util.path_ import make_sure_path_exists
+import limix_util.pickle as pickle_
+from limix_util.path import make_sure_path_exists
+from limix_util.path import touch
 from . import config
 from . import util
 from . import job
@@ -19,10 +20,22 @@ from . import job
 _cluster_runs = dict()
 def load(runid):
     if runid not in _cluster_runs:
-        cr = pickle_.unpickle(join(config.stdoe_folder(), runid,
-                              'cluster_run.pkl'))
+        folder = join(config.stdoe_folder(), runid)
+        if os.path.exists(join(folder, '.deleted')):
+            return None
+        cr = pickle_.unpickle(join(folder, 'cluster_run.pkl'))
         _cluster_runs[runid] = cr
     return _cluster_runs[runid]
+
+def rm(runid):
+    folder = join(config.stdoe_folder(), runid)
+    touch(join(folder, '.deleted'))
+
+def exists(runid):
+    if runid not in _cluster_runs:
+        return os.path.exists(join(config.stdoe_folder(), runid,
+                                   'cluster_run.pkl'))
+    return True
 
 def _submit_job(job):
     fcmd = job.full_cmd
@@ -72,6 +85,7 @@ class ClusterRun(ClusterRunBase):
     def kill(self, block=True):
         grp = '/cluster/%s' % self.runid
         util.kill_group(grp, block=block)
+
 
     @property
     def memory(self):
@@ -244,8 +258,7 @@ def get_bjob(runid, jobid):
     _register_cluster_run(cr)
     return cr.jobs[jobid]
 
-def get_groups_summary():
-    nlast = 10
+def get_groups_summary(nlast=10):
 
     awk = "awk -F\" \" '{print $1, $2, $3, $4, $5, $6, $7}'"
     cmd = "bjgroup | grep -E \".*`whoami`$\" | %s" % awk
@@ -255,15 +268,16 @@ def get_groups_summary():
     table = [line.split(' ') for line in lines]
 
     table = _clear_groups_summary(table)
-    table.sort(key=lambda x: x[0])
-    if len(table) > nlast:
-        table = table[-nlast:]
+    table.sort(key=lambda x: x[0], reverse=True)
 
+    table_out = []
     logger = logging.getLogger(__file__)
     for row in table:
         runid = row[0].strip('/').split('/')[1]
         try:
             cr = load(runid)
+            if cr is None:
+                continue
         except ImportError as e:
             logger.warn('Could not load cluster run %s. Reason: %s.', runid,
                         str(e))
@@ -271,11 +285,12 @@ def get_groups_summary():
             row.append('UNK')
             row.append('UNK')
         except IOError as e:
-            logger.warn('Could not load cluster run %s. Reason: %s.', runid,
-                        str(e))
-            row.append('UNK')
-            row.append('UNK')
-            row.append('UNK')
+            pass
+        #     logger.warn('Could not load cluster run %s. Reason: %s.', runid,
+        #                 str(e))
+        #     row.append('UNK')
+        #     row.append('UNK')
+        #     row.append('UNK')
         else:
             try:
                 row.append(cr.number_jobs_failed)
@@ -292,10 +307,14 @@ def get_groups_summary():
             except TypeError:
                 row.append('UNK')
 
+            table_out.insert(0, row)
+            if len(table_out) >= nlast:
+                break
+
     header = ['group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
               'failed', 'succeed', 'title']
-    table.insert(0, header)
-    return table
+    table_out.insert(0, header)
+    return table_out
 
 def _clear_groups_summary(table):
     ntable = []
