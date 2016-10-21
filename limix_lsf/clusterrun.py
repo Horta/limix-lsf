@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from concurrent.futures import ProcessPoolExecutor
 import logging
 import os
@@ -249,7 +249,7 @@ def _register_cluster_run(cr):
         _registered_cluster_runs[id(cr)] = cr
 
 def _update_storage():
-    for cr in _registered_cluster_runs.values():
+    for cr in list(_registered_cluster_runs.values()):
         cr.store()
 atexit.register(_update_storage)
 

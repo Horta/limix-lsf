@@ -1,6 +1,6 @@
-from __future__ import absolute_import
+
 import re
-from cStringIO import StringIO
+from io import StringIO
 import humanfriendly as hf
 from limix_util.pickle import SlotPickleMixin
 from . import util
