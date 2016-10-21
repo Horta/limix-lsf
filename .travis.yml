@@ -1,38 +1,52 @@
 language: python
-sudo: false
-
-cache:
-  - pip
-  - apt
-
-addons:
-  apt:
-    packages:
-      - build-essential
-      - python-dev
-      - libc6
-      - g++
-      - gfortran
-
-python:
-  - 2.7
-  - 3.5
-
+matrix:
+  include:
+  - os: linux
+    sudo: false
+    dist: trusty
+    python: '2.7'
+  - os: linux
+    sudo: false
+    dist: trusty
+    python: '3.4'
+  - os: linux
+    sudo: false
+    dist: trusty
+    python: '3.5'
+  - os: osx
+    language: generic
+    env: TRAVIS_PYTHON_VERSION=3.5
 before_install:
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda info -a
-  - conda install conda-build
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cython numpy scipy numba
-  - source activate test-environment
-
-install: python setup.py install
-script: python setup.py test
+- wget https://raw.githubusercontent.com/Horta/travis-miniconda/master/install.sh
+  -O install.sh
+- chmod +x install.sh
+- travis_retry bash -x ./install.sh
+install:
+- export PATH="$HOME/miniconda/bin:$PATH"
+- source activate travisci
+- travis_retry conda install pycparser -y --name travisci
+before_script:
+- export PATH="$HOME/miniconda/bin:$PATH"
+- source activate travisci
+- python setup.py test
+script:
+- export PATH="$HOME/miniconda/bin:$PATH"
+- source activate travisci
+- python setup.py sdist
+- pip install dist/`ls dist | grep -i -E '\.(gz)$' | head -1`
+- pushd /
+- python -c "import limix_lsf; limix_lsf.test()"
+- popd
+deploy:
+  provider: pypi
+  skip_cleanup: true
+  user: danilo.horta
+  on:
+    branch: master
+  password:
+    secure: anzxXTX/smxBYYHP2kZlasEsddOvyH7f4gxD0XWMpRhaye4DZBK6fdz9Ga/IAYZ6kNbqXqI4Ro6d34MPtN69S/TYKZaosLo3JLMYn27c/HlI6bA+I4v5NV6Wxzo51nFTTIiqwfy81seOVDjUku34zCjqODQO0bj9U50yKQMDseedksUFZBBtnSTVninhqVfRzhmps1oL1VbJOnK/ilb4eiNO/J+gPC7LMoUrE0SjkYJyV8EsZ7niCWCHQA/dmhm3f4nPwLd32hCvh74qClHied/nYQksOyEJyHrQXkvs0PUZfeageNbN1lLU0Uk3MktzNdUkUYjby48fhmEffCdZOAcbp+Qs+I3bmpW2b/TAfTbnpdPgXtqWX8kdHo5QBJWuVSY+FWXz6Rk1QdiQO5E6B6W33+vw459P5lLTciUuqjC886WymTsAyxRHwGxBahZums2SWHuIMjqSqM69wn+fWEci4rq7gEOHBni9MF5v7iKux+zRhn9bZ0tmTuIT3mE0i9sp7JCAae/Vmztk9esZ/w55FoPtYaPNAeD7JXvNlIhpwTUxZyVbH8LEsob6z8sAgTSvlqitL0o1knDy+bcrepjhsEXRIjsZQ6MkRYMA0Jpc2m7wHbS0UNBy/iQesHtLJm78PGr+DQiZUoIbJGjSiPwyD60TC5wumf7LEsVyS/Y=
+notifications:
+  email: false
+branches:
+  only:
+  - master

@@ -1,38 +1,8 @@
-
 import os
 import sys
-from setuptools import setup, find_packages
+from setuptools import setup
+from setuptools import find_packages
 
-PKG_NAME = 'limix_lsf'
-VERSION  = '0.1.2'
-
-try:
-    from distutils.command.bdist_conda import CondaDistribution
-except ImportError:
-    conda_present = False
-else:
-    conda_present = True
-
-def get_test_suite():
-    from unittest import TestLoader
-    return TestLoader().discover(PKG_NAME)
-
-def write_version():
-    cnt = """
-# THIS FILE IS GENERATED FROM %(package_name)s SETUP.PY
-version = '%(version)s'
-"""
-    filename = os.path.join(PKG_NAME, 'version.py')
-    a = open(filename, 'w')
-    try:
-        a.write(cnt % {'version': VERSION,
-                       'package_name': PKG_NAME.upper()})
-    finally:
-        a.close()
-
-def get_version_filename(package_name):
-    filename = os.path.join(package_name, 'version.py')
-    return filename
 
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -40,31 +10,41 @@ def setup_package():
     os.chdir(src_path)
     sys.path.insert(0, src_path)
 
-    write_version()
+    needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+    pytest_runner = ['pytest-runner'] if needs_pytest else []
 
-    install_requires = ['tabulate', 'limix_util', 'humanfriendly', 'futures']
-    setup_requires = []
+    setup_requires = [] + pytest_runner
+    install_requires = ['pytest', 'scipy>=0.17', 'numpy>=1.9',
+                        'tabulate', 'limix_util', 'humanfriendly', 'futures']
+    tests_require = install_requires
 
     metadata = dict(
-        name=PKG_NAME,
-        maintainer="Limix Developers",
-        version=VERSION,
+        name='limix-ext',
+        version='1.0.0',
+        maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
-        test_suite='setup.get_test_suite',
+        license="MIT",
+        url='http://github.com/Horta/limix-lsf',
         packages=find_packages(),
-        license="BSD",
-        url='http://pmbio.github.io/limix/',
+        zip_safe=False,
         install_requires=install_requires,
         setup_requires=setup_requires,
+        tests_require=tests_require,
+        include_package_data=True,
         zip_safe=True,
         entry_points={
             'console_scripts': ['bj = limix_lsf.bj:entry_point']
         }
     )
 
-    if conda_present:
+    try:
+        from distutils.command.bdist_conda import CondaDistribution
+    except ImportError:
+        pass
+    else:
         metadata['distclass'] = CondaDistribution
         metadata['conda_buildnum'] = 1
+        metadata['conda_features'] = ['mkl']
 
     try:
         setup(**metadata)
