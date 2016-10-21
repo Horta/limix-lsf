@@ -26,7 +26,6 @@ def setup_package():
         license="MIT",
         url='http://github.com/Horta/limix-lsf',
         packages=find_packages(),
-        zip_safe=False,
         install_requires=install_requires,
         setup_requires=setup_requires,
         tests_require=tests_require,
