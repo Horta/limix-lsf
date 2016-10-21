@@ -19,7 +19,7 @@ def setup_package():
     tests_require = install_requires
 
     metadata = dict(
-        name='limix-ext',
+        name='limix-lsf',
         version='1.0.0',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
