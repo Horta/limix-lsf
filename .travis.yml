@@ -24,7 +24,6 @@ before_install:
 install:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - source activate travisci
-- travis_retry conda install pycparser -y --name travisci
 before_script:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - source activate travisci
@@ -37,16 +36,8 @@ script:
 - pushd /
 - python -c "import limix_lsf; limix_lsf.test()"
 - popd
-deploy:
-  provider: pypi
-  skip_cleanup: true
-  user: danilo.horta
-  on:
-    branch: master
-  password:
-    secure: anzxXTX/smxBYYHP2kZlasEsddOvyH7f4gxD0XWMpRhaye4DZBK6fdz9Ga/IAYZ6kNbqXqI4Ro6d34MPtN69S/TYKZaosLo3JLMYn27c/HlI6bA+I4v5NV6Wxzo51nFTTIiqwfy81seOVDjUku34zCjqODQO0bj9U50yKQMDseedksUFZBBtnSTVninhqVfRzhmps1oL1VbJOnK/ilb4eiNO/J+gPC7LMoUrE0SjkYJyV8EsZ7niCWCHQA/dmhm3f4nPwLd32hCvh74qClHied/nYQksOyEJyHrQXkvs0PUZfeageNbN1lLU0Uk3MktzNdUkUYjby48fhmEffCdZOAcbp+Qs+I3bmpW2b/TAfTbnpdPgXtqWX8kdHo5QBJWuVSY+FWXz6Rk1QdiQO5E6B6W33+vw459P5lLTciUuqjC886WymTsAyxRHwGxBahZums2SWHuIMjqSqM69wn+fWEci4rq7gEOHBni9MF5v7iKux+zRhn9bZ0tmTuIT3mE0i9sp7JCAae/Vmztk9esZ/w55FoPtYaPNAeD7JXvNlIhpwTUxZyVbH8LEsob6z8sAgTSvlqitL0o1knDy+bcrepjhsEXRIjsZQ6MkRYMA0Jpc2m7wHbS0UNBy/iQesHtLJm78PGr+DQiZUoIbJGjSiPwyD60TC5wumf7LEsVyS/Y=
-notifications:
-  email: false
 branches:
   only:
   - master
+notifications:
+  email: false

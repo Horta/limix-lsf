@@ -15,12 +15,13 @@ def setup_package():
 
     setup_requires = [] + pytest_runner
     install_requires = ['pytest', 'scipy>=0.17', 'numpy>=1.9',
-                        'tabulate', 'limix_util', 'humanfriendly', 'futures']
+                        'tabulate', 'limix_util>=1.0', 'humanfriendly',
+                        'futures']
     tests_require = install_requires
 
     metadata = dict(
-        name='limix-lsf',
-        version='1.0.0',
+        name='limix_lsf',
+        version='1.0.1',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",
@@ -33,7 +34,15 @@ def setup_package():
         zip_safe=True,
         entry_points={
             'console_scripts': ['bj = limix_lsf.bj:entry_point']
-        }
+        },
+        classifiers=[
+            "Development Status :: 5 - Production/Stable",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Operating System :: OS Independent",
+        ],
     )
 
     try:
