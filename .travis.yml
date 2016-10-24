@@ -41,3 +41,11 @@ branches:
   - master
 notifications:
   email: false
+deploy:
+  provider: pypi
+  user: dhorta
+  password:
+    secure: Y/iBshmS+U1PTSs2bhYwYYDHbWmRnFMc1Z7vlVHJsnhAa/oArAlcxD8jehEl+d+BsDJCL/U+P7IrS0gk+yMIrLmx63puCE+zbEr7BD6oc8LqN0l5GX9wGumwt7SDN9O6BUhCuK7YkuonHbdbq6smkub2TDWG4KpfjkdbbjWade+HrV55p93PFSWC9wPq5wy0FVqO/K1G4YQ7wtcWoUoDj5gT/wCmejZDGhP50++3JPpaaPmdyEE4DrX1IvCDzoGaulDzllArUxAyC3c3FbBqqaJPqHjuGJbxYv6ORftuayEQqnyMcOyHtV65TXOW3yM3rhmOv4EBcW+l/W3yh0EEdixzaKxWQpJlapa+mn7mg9nS0dJg0mXGZ9+HhsliwI6aRZzVgxCxkMRyqsfEa+kXSH6aizO6K9lGf1OoTL62MPxpxFpzXccWx2jQ55s5xbJBQd7NzOGgQB/CPZTGbJ5gjOj4htjupDMVhxbhD/Ey0R1q2JZQcuzRyJ73uG1hQ/74Hfuo63qTG7CDTr8N21vqBWRH/GO+jPs6ThP1N3ImeUTQweVPQdmMirqqErFlrfgQfTeyN/fZ88esTZ2QTnLsihWV8qCyp5Gh4p5UFtOQDFW/ox+TeTPQr23Tdoaw9Fxz0VMPl7P50EARXUCRqjBXFMioCgiG2NoxTWP77Ry2eoQ=
+  on:
+    distributions: sdist bdist_wheel
+    repo: Horta/limix-lsf
