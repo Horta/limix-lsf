@@ -32,14 +32,14 @@ def get_jobs_stat():
         if r == 'No job found':
             _stats[0] = {}
         else:
-            _stats[0] = {int(row.split(b' ')[0]):row.split(b' ')[1] for row in r.split(b'\n')}
+            _stats[0] = {int(row.split(' ')[0]):row.split(' ')[1] for row in r.split('\n')}
     return _stats[0]
 
 def group_jobids(grp):
     procs = Popen("bjobs -g %s -w | awk '{print $1}'" % grp,
                   shell=True, stdout=subprocess.PIPE,
                   universal_newlines=True).stdout.read()
-    procs = procs.split(b'\n')
+    procs = procs.split('\n')
     procs = procs[1:-1]
     return [int(p) for p in procs]
 
