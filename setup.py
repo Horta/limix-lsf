@@ -15,13 +15,13 @@ def setup_package():
 
     setup_requires = [] + pytest_runner
     install_requires = ['pytest', 'scipy>=0.17', 'numpy>=1.9',
-                        'tabulate', 'limix_util>=1.0', 'humanfriendly',
+                        'tabulate', 'limix_util>=1.0.4', 'humanfriendly',
                         'futures']
     tests_require = install_requires
 
     metadata = dict(
         name='limix_lsf',
-        version='1.0.1',
+        version='1.0.2',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",

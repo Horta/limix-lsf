@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 
 from concurrent.futures import ProcessPoolExecutor
 import logging
@@ -11,6 +12,7 @@ from subprocess import list2cmdline
 import humanfriendly as hf
 from limix_util.report import BeginEnd, ProgressBar
 import limix_util.pickle as pickle_
+from limix_util.string import make_sure_unicode
 from limix_util.path import make_sure_path_exists
 from limix_util.path import touch
 from . import config
@@ -40,8 +42,11 @@ def exists(runid):
 def _submit_job(job):
     fcmd = job.full_cmd
     p = subprocess.Popen(list2cmdline(fcmd), shell=True,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         universal_newlines=True)
     (job.odata, job.edata) = p.communicate()
+    job.odata = make_sure_unicode(job.odata)
+    job.edata = make_sure_unicode(job.edata)
     p.stdout.close()
     p.stderr.close()
     return job

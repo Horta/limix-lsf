@@ -1,5 +1,6 @@
 
 import re
+from limix_util.string import make_sure_unicode
 from io import StringIO
 import humanfriendly as hf
 from limix_util.pickle import SlotPickleMixin
@@ -53,7 +54,7 @@ class Job(SlotPickleMixin):
 
     @property
     def os_jobid(self):
-        m = re.match(r'^Job <(\d+)>.*$', self.odata)
+        m = re.match(r'^Job <(\d+)>.*$', make_sure_unicode(self.odata))
         if m:
             return int(m.group(1))
         return None
@@ -92,7 +93,7 @@ class Job(SlotPickleMixin):
         return r
 
     def hassubmitted(self):
-        return ("Job <%d> " % self.os_jobid + "is submitted") in self.odata
+        return ("Job <%d> " % self.os_jobid + "is submitted") in make_sure_unicode(self.odata)
 
     def ispending(self):
         return self.stat() == 'PEND'

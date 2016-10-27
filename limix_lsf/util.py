@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 
 from subprocess import Popen
 import os
@@ -31,13 +32,14 @@ def get_jobs_stat():
         if r == 'No job found':
             _stats[0] = {}
         else:
-            _stats[0] = {int(row.split(' ')[0]):row.split(' ')[1] for row in r.split('\n')}
+            _stats[0] = {int(row.split(b' ')[0]):row.split(b' ')[1] for row in r.split(b'\n')}
     return _stats[0]
 
 def group_jobids(grp):
     procs = Popen("bjobs -g %s -w | awk '{print $1}'" % grp,
-                  shell=True, stdout=subprocess.PIPE).stdout.read()
-    procs = procs.split('\n')
+                  shell=True, stdout=subprocess.PIPE,
+                  universal_newlines=True).stdout.read()
+    procs = procs.split(b'\n')
     procs = procs[1:-1]
     return [int(p) for p in procs]
 
@@ -45,7 +47,8 @@ def kill_group(grp, block=True):
     jobids = group_jobids(grp)
     procs = []
     for jobid in jobids:
-        p = Popen("bkill %d &> /dev/null" % jobid, shell=True)
+        p = Popen("bkill %d &> /dev/null" % jobid, shell=True,
+                  universal_newlines=True)
         procs.append(p)
 
     if block:
