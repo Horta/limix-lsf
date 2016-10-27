@@ -6,6 +6,7 @@ import subprocess
 import re
 from .config import stdoe_folder
 from limix_util.path import make_sure_path_exists
+from limix_util.string import make_sure_unicode
 
 _max_nfiles = 1000
 
@@ -27,7 +28,9 @@ _stats = [None]
 def get_jobs_stat():
     if _stats[0] is None:
         cmd = 'bjobs -a -o "JOBID STAT" -noheader'
-        r = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        r = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT,
+                                    universal_newlines=True)
+        r = make_sure_unicode(r)
         r = r.strip()
         if r == 'No job found':
             _stats[0] = {}
