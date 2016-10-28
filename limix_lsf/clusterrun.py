@@ -267,7 +267,9 @@ def get_groups_summary(nlast=10):
 
     awk = "awk -F\" \" '{print $1, $2, $3, $4, $5, $6, $7}'"
     cmd = "bjgroup | grep -E \".*`whoami`$\" | %s" % awk
-    msg = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    msg = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT,
+                                  universal_newlines=True)
+    msg = make_sure_unicode(msg)
     msg = msg.strip()
     lines = msg.split('\n')
     table = [line.split(' ') for line in lines]
