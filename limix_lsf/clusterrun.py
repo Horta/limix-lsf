@@ -205,7 +205,7 @@ class ClusterRun(ClusterRunBase):
         bcmd.append("-M")
         bcmd.append("%d" % m)
         bcmd.append("-R")
-        bcmd.append("rusage[mem=%d]" % m)
+        bcmd.append("rusage[mem=1]")
 
     def _parse_nprocs(self, bcmd):
         bcmd.append('-n')
