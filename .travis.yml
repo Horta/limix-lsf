@@ -27,6 +27,5 @@ deploy:
   password:
     secure: Ui6OnK6hb041XFlcABt/Rq9jadcAmbiIPZhqRrGzZnEXuw33juOi3A/0Jre29Xc/qptCxym2KrgxXoexgUnA3tZ1D+ewqmeccm2cWfXYqmJit7Kl/VonevRu0Hxif9ppwU37uHaBB+MUONnS/XGViB6S3b97VPhmKssd/+AoKtLve7TZQncJzgKnk7J5cN6MLxTRS9FrXTcimHfsNOKv0UMff7CoR98oWU/6Yi/SYbdanxvOdZzMiMPD/N9E8oOnpCD8sbNALhG7Nd1/mcbhBQfUfLvYKeKq95J8yYH19WBnWO66gPlCieduKOcFnUOtKF0scRecSjdVSNggtWKf3pBRClHYP90sgGQbo7vIWicYaI3ipgvPKh2SiHYR0L8H2d/a5WY97+nan4GiocmMPll4bqt559gTwfc4fQ2BT2ertD8QHJsjEg3sEoi0ZtlXQ1tAWZR0LXYhurgNY/nVlwpNiM+0d285jEjd5jRcSkz/Yz+R7KHyw0jz0fdRK2XzuY5nE784m9K88ulD3T01YLxWLsnsqj19WO5F8zk42lUjTiY6wqH8hj3t9Lm9lctxequs1icP23H3M5Vlgw4hXG9OJVQ6x81QEtyWRS4xS4L+yn+ix2GYM1XdMl5zdC6QhorNg+IzwlQ+VdrVYNXJTQZSk0iCr6P3WXUXtaj2zpg=
   on:
-    tags: true
     distributions: sdist bdist_wheel
     repo: Horta/limix-lsf
