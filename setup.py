@@ -25,7 +25,7 @@ def setup_package():
 
     metadata = dict(
         name='limix_lsf',
-        version='1.0.6.dev1',
+        version='1.0.6.dev2',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",
