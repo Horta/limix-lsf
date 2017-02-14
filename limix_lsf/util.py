@@ -5,8 +5,8 @@ import os
 import subprocess
 import re
 from .config import stdoe_folder
-from limix_util.path import make_sure_path_exists
-from limix_util.string import make_sure_unicode
+from ._path import make_sure_path_exists
+from ._string import make_sure_unicode
 
 _max_nfiles = 1000
 

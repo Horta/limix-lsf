@@ -1,16 +1,18 @@
-
 import re
-from limix_util.string import make_sure_unicode
 from io import StringIO
-import humanfriendly as hf
-from limix_util.pickle import SlotPickleMixin
+
+from humanfriendly import parse_size
+from pickle_mixin import SlotPickleMixin
+
 from . import util
+from ._string import make_sure_unicode
 
 
 class Job(SlotPickleMixin):
-    __slots__ = ['jobid', 'finished', '_exit_status', 'cmd', '_bcmd',
-                 'odata', 'edata', 'runid', '_hasfinished', '_stat_cache',
-                 'mkl_nthreads']
+    __slots__ = [
+        'jobid', 'finished', '_exit_status', 'cmd', '_bcmd', 'odata', 'edata',
+        'runid', '_hasfinished', '_stat_cache', 'mkl_nthreads'
+    ]
 
     def __init__(self, jobid, cmd):
         self.runid = None
@@ -70,7 +72,7 @@ class Job(SlotPickleMixin):
     @property
     def full_cmd(self):
         n = self.mkl_nthreads
-        middle  = ['env', 'MKL_NUM_THREADS=%d' % n]
+        middle = ['env', 'MKL_NUM_THREADS=%d' % n]
         middle += ['MKL_DYNAMIC=TRUE']
         return self.bcmd + middle + self.cmd
 
@@ -93,7 +95,8 @@ class Job(SlotPickleMixin):
         return r
 
     def hassubmitted(self):
-        return ("Job <%d> " % self.os_jobid + "is submitted") in make_sure_unicode(self.odata)
+        return ("Job <%d> " % self.os_jobid + "is submitted"
+                ) in make_sure_unicode(self.odata)
 
     def ispending(self):
         return self.stat() == 'PEND'
@@ -170,30 +173,16 @@ class Job(SlotPickleMixin):
             if m is None:
                 max_memory = None
             else:
-                max_memory = hf.parse_size(m.group(1))
+                max_memory = parse_size(m.group(1))
             avg_memory = buf.readline()
             req_memory = buf.readline()
-            m = re.match(r'^.*Total Requested Memory : [^\d]*(\d.*)$', req_memory)
+            m = re.match(r'^.*Total Requested Memory : [^\d]*(\d.*)$',
+                         req_memory)
             if m is None:
                 req_memory = None
             else:
-                req_memory = hf.parse_size(m.group(1))
+                req_memory = parse_size(m.group(1))
             delta_memory = buf.readline()
             return dict(max_memory=max_memory, req_memory=req_memory)
 
         return None
-
-    #
-    # def stdout(self):
-    #     ofile, _ = _get_output_files(self.jobid, self.runid)
-    #     try:
-    #         with open(ofile, 'r') as f:
-    #             return f.read()
-    #     except IOError:
-    #         return ""
-    #
-    # def stderr(self):
-    #     _, efile = _get_output_files(self.jobid, self.runid)
-    #     try:
-    #         with open(efile, 'r') as f:
-    #             return f.read()

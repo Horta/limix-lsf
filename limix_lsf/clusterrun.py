@@ -1,49 +1,58 @@
 from __future__ import unicode_literals
 
-from concurrent.futures import ProcessPoolExecutor
+import atexit
 import logging
 import os
-from os.path import join
-from copy import copy
 import re
-import atexit
 import subprocess
+from concurrent.futures import ProcessPoolExecutor
+from copy import copy
+from os.path import join
 from subprocess import list2cmdline
-import humanfriendly as hf
-from limix_util.report import BeginEnd, ProgressBar
-import limix_util.pickle as pickle_
-from limix_util.string import make_sure_unicode
-from limix_util.path import make_sure_path_exists
-from limix_util.path import touch
-from . import config
-from . import util
-from . import job
+
+from humanfriendly import format_size, parse_size
+from pickle_blosc import pickle, unpickle
+from pickle_mixin import SlotPickleMixin
+from tqdm import tqdm
+
+from . import config, job, util
+from ._elapsed import BeginEnd
+from ._path import make_sure_path_exists, touch
+from ._string import make_sure_unicode
 
 _cluster_runs = dict()
+
+
 def load(runid):
     if runid not in _cluster_runs:
         folder = join(config.stdoe_folder(), runid)
         if os.path.exists(join(folder, '.deleted')):
             return None
-        cr = pickle_.unpickle(join(folder, 'cluster_run.pkl'))
+        cr = unpickle(join(folder, 'cluster_run.pkl'))
         _cluster_runs[runid] = cr
     return _cluster_runs[runid]
+
 
 def rm(runid):
     folder = join(config.stdoe_folder(), runid)
     touch(join(folder, '.deleted'))
 
+
 def exists(runid):
     if runid not in _cluster_runs:
-        return os.path.exists(join(config.stdoe_folder(), runid,
-                                   'cluster_run.pkl'))
+        return os.path.exists(
+            join(config.stdoe_folder(), runid, 'cluster_run.pkl'))
     return True
+
 
 def _submit_job(job):
     fcmd = job.full_cmd
-    p = subprocess.Popen(list2cmdline(fcmd), shell=True,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         universal_newlines=True)
+    p = subprocess.Popen(
+        list2cmdline(fcmd),
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True)
     (job.odata, job.edata) = p.communicate()
     job.odata = make_sure_unicode(job.odata)
     job.edata = make_sure_unicode(job.edata)
@@ -51,9 +60,13 @@ def _submit_job(job):
     p.stderr.close()
     return job
 
-class ClusterRunBase(pickle_.SlotPickleMixin):
-    __slots__ = ['requests', 'megabytes', 'jobs', 'group', 'runid', 'title',
-                 'nprocs', 'mkl_nthreads', 'queue']
+
+class ClusterRunBase(SlotPickleMixin):
+    __slots__ = [
+        'requests', 'megabytes', 'jobs', 'group', 'runid', 'title', 'nprocs',
+        'mkl_nthreads', 'queue'
+    ]
+
     def __init__(self, title):
         self.requests = []
         self.megabytes = 4096
@@ -64,15 +77,17 @@ class ClusterRunBase(pickle_.SlotPickleMixin):
         self.mkl_nthreads = 1
         self.queue = None
 
+
 class ClusterRun(ClusterRunBase):
     __slots__ = []
+
     def __init__(self, title='notitle'):
         super(ClusterRun, self).__init__(title)
 
     def store(self):
-        with BeginEnd('Storing cluster commands', silent=True):
-            pickle_.pickle(self, join(config.stdoe_folder(), self.runid,
-                           'cluster_run.pkl'))
+        with BeginEnd('Storing cluster commands', silent=False):
+            pickle(self,
+                   join(config.stdoe_folder(), self.runid, 'cluster_run.pkl'))
 
     def request(self, req):
         if self.runid is not None:
@@ -91,18 +106,17 @@ class ClusterRun(ClusterRunBase):
         grp = '/cluster/%s' % self.runid
         util.kill_group(grp, block=block)
 
-
     @property
     def memory(self):
         nbytes = int(round(self.megabytes / 1024. / 1024.))
-        return hf.format_size(nbytes)
+        return format_size(nbytes)
 
     @memory.setter
     def memory(self, siz):
         if self.runid is not None:
             raise Exception('This command set has already been sent.')
 
-        nbytes = hf.parse_size(siz)
+        nbytes = parse_size(siz)
         self.megabytes = int(round(nbytes / 1024. / 1024.))
 
     def add(self, cmd):
@@ -117,20 +131,6 @@ class ClusterRun(ClusterRunBase):
 
     def _dryrun_job(self, job):
         print(list2cmdline(job.full_cmd))
-
-    # def _parallel_run_job(self, executor, job):
-    #     fcmd = job.full_cmd
-    #     f = executor.submit(subprocess.Popen, list2cmdline(fcmd), shell=True,
-    #                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #     # process = subprocess.Popen(list2cmdline(fcmd), shell=True,
-    #     #                  stdout=subprocess.PIPE,
-    #     #                  stderr=subprocess.PIPE)
-    #     return f
-
-    # def _run_job_wait(self, executor, job):
-    #     fcmd = job.full_cmd
-    #     f = executor.submit(subprocess.Popen, list2cmdline(fcmd), shell=True,
-    #                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def _sequential_run_job(self, job):
         os.system(list2cmdline(job.cmd))
@@ -156,20 +156,16 @@ class ClusterRun(ClusterRunBase):
 
         ujobs = []
         max_workers = 500
-        with BeginEnd('Submitting jobs'):
-            pb = ProgressBar(len(self.jobs))
-            i = 0
-            with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                for job in executor.map(_submit_job, self.jobs):
-                    job.runid = self.runid
-                    ujobs.append(job)
-                    i += 1
-                    pb.update(i)
-            pb.finish()
+
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            for job in tqdm(
+                    executor.map(_submit_job, self.jobs),
+                    desc='Submitting jobs'):
+                job.runid = self.runid
+                ujobs.append(job)
 
         self.jobs = ujobs
-        print('   %d jobs have been submitted   '
-              % len(self.jobs))
+        print('   %d jobs have been submitted   ' % len(self.jobs))
 
         print("Run ID: %s" % self.runid)
 
@@ -194,7 +190,6 @@ class ClusterRun(ClusterRunBase):
         ofile = join(base, 'out_%d.txt' % jobid)
         efile = join(base, 'err_%d.txt' % jobid)
         return (ofile, efile)
-
 
     def _parse_requests(self, bcmd):
         bcmd.append("-R")
@@ -244,31 +239,40 @@ class ClusterRun(ClusterRunBase):
         return sum([1 for job in self.jobs if job.hasfinished() and\
                                               job.exit_status() != 0])
 
+
 def _generate_runid():
     from time import gmtime, strftime
     return strftime('%Y-%m-%d-%H-%M-%S', gmtime())
 
+
 _registered_cluster_runs = dict()
+
+
 def _register_cluster_run(cr):
     if id(cr) not in _registered_cluster_runs:
         _registered_cluster_runs[id(cr)] = cr
 
+
 def _update_storage():
     for cr in list(_registered_cluster_runs.values()):
         cr.store()
+
+
 atexit.register(_update_storage)
+
 
 def get_bjob(runid, jobid):
     cr = load(runid)
     _register_cluster_run(cr)
     return cr.jobs[jobid]
 
+
 def get_groups_summary(nlast=10):
 
     awk = "awk -F\" \" '{print $1, $2, $3, $4, $5, $6, $7}'"
     cmd = "bjgroup | grep -E \".*`whoami`$\" | %s" % awk
-    msg = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT,
-                                  universal_newlines=True)
+    msg = subprocess.check_output(
+        cmd, shell=True, stderr=subprocess.STDOUT, universal_newlines=True)
     msg = make_sure_unicode(msg)
     msg = msg.strip()
     lines = msg.split('\n')
@@ -318,10 +322,13 @@ def get_groups_summary(nlast=10):
             if len(table_out) >= nlast:
                 break
 
-    header = ['group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
-              'failed', 'succeed', 'title']
+    header = [
+        'group_name', 'njobs', 'pend', 'run', 'ssusp', 'ususp', 'finish',
+        'failed', 'succeed', 'title'
+    ]
     table_out.insert(0, header)
     return table_out
+
 
 def _clear_groups_summary(table):
     ntable = []
@@ -332,6 +339,7 @@ def _clear_groups_summary(table):
         ntable.append(row)
     return ntable
 
+
 def _isrun_group(name):
     name = name.strip('/')
     names = name.split('/')
@@ -339,6 +347,9 @@ def _isrun_group(name):
         return False
     return names[0] == 'cluster' and _isrunid(names[1])
 
+
 _runid_matcher = re.compile(r'^\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d$')
+
+
 def _isrunid(runid):
     return _runid_matcher.match(runid) is not None
