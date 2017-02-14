@@ -29,7 +29,7 @@ def setup_package():
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",
-        url='http://github.com/glimix/limix-lsf',
+        url='http://github.com/Horta/limix-lsf',
         packages=find_packages(),
         install_requires=install_requires,
         setup_requires=setup_requires,
