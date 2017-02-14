@@ -3,6 +3,7 @@ import sys
 
 from setuptools import find_packages, setup
 
+PY2 = sys.version_info[0] == 2
 
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -16,8 +17,10 @@ def setup_package():
     setup_requires = [] + pytest_runner
     install_requires = [
         'pytest', 'scipy>=0.17', 'numpy>=1.9', 'tabulate', 'humanfriendly',
-        'futures', 'tqdm', 'pickle_mixin', 'pickle_blosc'
+        'tqdm', 'pickle_mixin', 'pickle_blosc'
     ]
+    if PY2:
+        install_requires += ['futures']
     tests_require = ['pytest']
 
     metadata = dict(

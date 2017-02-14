@@ -5,7 +5,6 @@ import logging
 import os
 import re
 import subprocess
-from concurrent.futures import ProcessPoolExecutor
 from copy import copy
 from os.path import join
 from subprocess import list2cmdline
@@ -19,6 +18,13 @@ from . import config, job, util
 from ._elapsed import BeginEnd
 from ._path import make_sure_path_exists, touch
 from ._string import make_sure_unicode
+
+try:
+    from concurrent.futures import ProcessPoolExecutor
+except ImportError:
+    from futures import ProcessPoolExecutor
+
+
 
 _cluster_runs = dict()
 
