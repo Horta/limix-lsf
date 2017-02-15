@@ -24,19 +24,16 @@ def get_output_files(i, runid):
     efile = os.path.join(base, 'err_%d.txt' % i)
     return (ofile, efile)
 
-_stats = [None]
 def get_jobs_stat():
-    if _stats[0] is None:
-        cmd = 'bjobs -a -o "JOBID STAT" -noheader'
-        r = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT,
-                                    universal_newlines=True)
-        r = make_sure_unicode(r)
-        r = r.strip()
-        if r == 'No job found':
-            _stats[0] = {}
-        else:
-            _stats[0] = {int(row.split(' ')[0]):row.split(' ')[1] for row in r.split('\n')}
-    return _stats[0]
+    stats = dict()
+    cmd = 'bjobs -a -o "JOBID STAT" -noheader'
+    r = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT,
+                                universal_newlines=True)
+    r = make_sure_unicode(r)
+    r = r.strip()
+    if r != 'No job found':
+        stats = {int(row.split(' ')[0]):row.split(' ')[1] for row in r.split('\n')}
+    return stats
 
 def group_jobids(grp):
     procs = Popen("bjobs -g %s -w | awk '{print $1}'" % grp,
@@ -76,6 +73,6 @@ def proper_runid(what):
 
 def get_runids():
     c = re.compile(r'^\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d$')
-    files = os.listdir(config.stdoe_folder())
+    files = os.listdir(stdoe_folder())
     runids = [f for f in files if c.match(f)]
     return runids

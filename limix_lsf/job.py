@@ -167,14 +167,14 @@ class Job(SlotPickleMixin):
 
         if found:
             buf.readline()
-            cpu_time = buf.readline()
+            buf.readline()
             max_memory = buf.readline()
             m = re.match(r'^.*Max Memory : [^\d]*(\d.*)$', max_memory)
             if m is None:
                 max_memory = None
             else:
                 max_memory = parse_size(m.group(1))
-            avg_memory = buf.readline()
+            buf.readline()
             req_memory = buf.readline()
             m = re.match(r'^.*Total Requested Memory : [^\d]*(\d.*)$',
                          req_memory)
@@ -182,7 +182,7 @@ class Job(SlotPickleMixin):
                 req_memory = None
             else:
                 req_memory = parse_size(m.group(1))
-            delta_memory = buf.readline()
+            buf.readline()
             return dict(max_memory=max_memory, req_memory=req_memory)
 
         return None

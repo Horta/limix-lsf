@@ -8,7 +8,7 @@ from .util import kill_group
 
 try:
     __version__ = _get_distribution('limix_lsf').version
-except _DistributionNotFound:
+except (_DistributionNotFound, AttributeError):
     __version__ = 'unknown'
 
 
