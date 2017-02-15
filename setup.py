@@ -17,7 +17,7 @@ def setup_package():
     setup_requires = [] + pytest_runner
     install_requires = [
         'pytest', 'scipy>=0.17', 'numpy>=1.9', 'tabulate', 'humanfriendly',
-        'tqdm', 'pickle_mixin', 'pickle_blosc'
+        'tqdm', 'pickle-mixin', 'pickle-blosc'
     ]
     if PY2:
         install_requires += ['futures']
@@ -25,7 +25,7 @@ def setup_package():
 
     metadata = dict(
         name='limix_lsf',
-        version='1.0.6.dev2',
+        version='1.0.6',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",
