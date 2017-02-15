@@ -303,11 +303,6 @@ def get_groups_summary(nlast=10):
             row.append('UNK')
         except IOError as e:
             pass
-        #     logger.warn('Could not load cluster run %s. Reason: %s.', runid,
-        #                 str(e))
-        #     row.append('UNK')
-        #     row.append('UNK')
-        #     row.append('UNK')
         else:
             try:
                 row.append(cr.number_jobs_failed)
