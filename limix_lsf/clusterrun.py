@@ -91,9 +91,8 @@ class ClusterRun(ClusterRunBase):
         super(ClusterRun, self).__init__(title)
 
     def store(self):
-        with BeginEnd('Storing cluster commands', silent=False):
-            pickle(self,
-                   join(config.stdoe_folder(), self.runid, 'cluster_run.pkl'))
+        fp = join(config.stdoe_folder(), self.runid, 'cluster_run.pkl')
+        pickle(self, fp)
 
     def request(self, req):
         if self.runid is not None:
