@@ -46,8 +46,10 @@ def rm(runid):
 
 def exists(runid):
     if runid not in _cluster_runs:
-        return os.path.exists(
-            join(config.stdoe_folder(), runid, 'cluster_run.pkl'))
+        root = join(config.stdoe_folder(), runid)
+        ok = os.path.exists(join(root, 'cluster_run.pkl'))
+        ok = ok and not os.path.exists(join(root, '.deleted'))
+        return ok
     return True
 
 
