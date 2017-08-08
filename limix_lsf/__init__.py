@@ -3,8 +3,9 @@ from __future__ import absolute_import as _absolute_import
 from pkg_resources import DistributionNotFound as _DistributionNotFound
 from pkg_resources import get_distribution as _get_distribution
 
-from . import clusterrun
-from .util import kill_group
+# from . import clusterrun
+# from .util import kill_group
+from .bjob import BJob
 
 try:
     __version__ = _get_distribution('limix_lsf').version
@@ -30,4 +31,5 @@ def test():
     return return_code
 
 
-__all__ = ['__version__', 'test', 'clusterrun', 'kill_group']
+# __all__ = ['__version__', 'test', 'clusterrun', 'kill_group']
+__all__ = ['__version__', 'test', 'BJob']

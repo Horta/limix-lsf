@@ -5,6 +5,7 @@ from setuptools import find_packages, setup
 
 PY2 = sys.version_info[0] == 2
 
+
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     old_path = os.getcwd()
@@ -17,7 +18,7 @@ def setup_package():
     setup_requires = [] + pytest_runner
     install_requires = [
         'pytest', 'scipy>=0.17', 'numpy>=1.9', 'tabulate', 'humanfriendly',
-        'tqdm', 'pickle-mixin', 'pickle-blosc'
+        'tqdm'
     ]
     if PY2:
         install_requires += ['futures']
@@ -25,7 +26,7 @@ def setup_package():
 
     metadata = dict(
         name='limix_lsf',
-        version='1.0.8',
+        version='1.1.0',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",
