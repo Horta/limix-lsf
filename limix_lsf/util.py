@@ -101,3 +101,8 @@ def get_runids():
     files = os.listdir(stdoe_folder())
     runids = [f for f in files if c.match(f)]
     return runids
+
+
+def touch(fname, times=None):
+    with open(fname, 'a'):
+        os.utime(fname, times)
