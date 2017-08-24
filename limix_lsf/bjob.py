@@ -1,5 +1,5 @@
 import re
-# from io import StringIO
+import subprocess
 from os import remove
 from os.path import exists
 
@@ -46,6 +46,18 @@ class BJob(object):
         #     lines = f.readlines()
         #     self._bjob_id = _bjob_id(lines[1])
 
+    def kill(self):
+        if self._bjob_id is not None:
+            subprocess.call("bkill %d" % self._bjob_id, shell=True)
+
+    @property
+    def stdout(self):
+        if not exists(self._fp_out):
+            return None
+
+        with open(self._fp_out, 'r') as f:
+            return f.read()
+
     @property
     def stderr(self):
         if not exists(self._fp_err):
@@ -64,6 +76,26 @@ class BJob(object):
     def touch_output(self):
         touch(self._fp_err)
         touch(self._fp_out)
+
+    @property
+    def memory_usage(self):
+        mem = {"Max Memory": None, "Average Memory": None,
+               "Total Requested Memory": None, "Delta Memory": None}
+
+        count = len(mem)
+        if exists(self._fp_out):
+            with open(self._fp_out, 'r') as f:
+                lines = f.readlines()
+            for line in lines:
+                l = line.strip()
+                for k in mem.keys():
+                    if l.startswith(k):
+                        mem[k] = re.match(".*:(.*)", l).group(1).strip()
+                        count -= 1
+                        break
+                if count == 0:
+                    break
+        return mem
 
     @property
     def stat(self):
@@ -114,6 +146,16 @@ class BJob(object):
             self._hasfinished = self._exit_status is not None
 
         return self._hasfinished
+    
+    @property
+    def fail_reason(self):
+        if exists(self._fp_out):
+            with open(self._fp_out, 'r') as f:
+                lines = f.readlines()
+            for line in lines:
+                if line.strip() == "TERM_MEMLIMIT: job killed after reaching LSF memory usage limit.":
+                    return "MEMLIMIT"
+        return "UNK"
 
     @property
     def exit_status(self):
